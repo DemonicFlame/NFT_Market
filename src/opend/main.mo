@@ -5,6 +5,7 @@ import Text "mo:base/Text";
 import Nat8 "mo:base/Nat8";
 import HashMap "mo:base/HashMap";
 import List "mo:base/List";
+import Bool "mo:base/Bool";
 import NFTActorClass "../NFT/nft";
 
 actor OpenD {
@@ -65,6 +66,14 @@ actor OpenD {
 
     public query func getOpenDCanisterID() : async Principal {
         return Principal.fromActor(OpenD);
+    };
+
+    public query func isListed(id : Principal) : async Bool {
+        if (mapOfListings.get(id) == null) {
+            return false;
+        } else {
+            return true;
+        };
     };
 };
 // REMINDER TO ADD AUTHENTICATION
