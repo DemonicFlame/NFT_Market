@@ -4,7 +4,7 @@ import { idlFactory } from "../../../declarations/nft/nft.did.js";
 import { Principal } from "@dfinity/principal";
 import Button from "./Button.jsx";
 import { opend } from "../../../declarations/opend";
-import { setSourceMapRange } from "../../../../node_modules/typescript/lib/typescript.js";
+import PriceLabel from "./PriceLabel.jsx";
 
 function Item(props) {
   const [name, setName] = useState();
@@ -15,6 +15,7 @@ function Item(props) {
   const [loaderHidden, setLoaderHidden] = useState(true);
   const [blur, setBlur] = useState();
   const [sellStatus, setSellStatus] = useState();
+  const [priceLabel, setPriceLabel] = useState();
 
   const id = props.id;
 
@@ -42,13 +43,23 @@ function Item(props) {
     );
     setImage(image);
 
-    const nftIsListed = await opend.isListed(props.id);
-    if (nftIsListed) {
-      setOwner("OpenD");
-      setBlur({ filter: "blur(6px)" });
-      setSellStatus("Listed");
-    } else {
-      setButton(<Button handleClick={handleSell} text={"Sell"} />);
+    if (props.role == "collection") {
+      const nftIsListed = await opend.isListed(props.id);
+      if (nftIsListed) {
+        setOwner("OpenD");
+        setBlur({ filter: "blur(6px)" });
+        setSellStatus("Listed");
+      } else {
+        setButton(<Button handleClick={handleSell} text={"Sell"} />);
+      }
+    } else if (props.role == "discover") {
+      const originalOwner = await opend.getOriginalOwner(props.id);
+      if (originalOwner.toText() != currenUser.toText()) {
+        //ADD AUTHENTICATION HERE
+        setButton(<Button handleClick={handleBuy} text={"Buy"} />);
+      }
+      const price = await opend.getListedNFTPrice(props.id);
+      setPriceLabel(<PriceLabel sellPrice={price.toString()} />);
     }
   }
 
@@ -90,6 +101,8 @@ function Item(props) {
     }
   }
 
+  async function handleBuy() {}
+
   return (
     <div className="disGrid-item">
       <div className="disPaper-root disCard-root makeStyles-root-17 disPaper-elevation1 disPaper-rounded">
@@ -105,6 +118,7 @@ function Item(props) {
           <div></div>
         </div>
         <div className="disCardContent-root">
+          {priceLabel}
           <h2 className="disTypography-root makeStyles-bodyText-24 disTypography-h5 disTypography-gutterBottom">
             {name}
             <span className="purple-text"> {sellStatus}</span>
