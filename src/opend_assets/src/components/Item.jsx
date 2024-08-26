@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "../../../declarations/nft/nft.did.js";
+import { idlFactory as tokenidlFactory } from "../../../declarations/token/token.did.js";
 import { Principal } from "@dfinity/principal";
 import Button from "./Button.jsx";
 import { opend } from "../../../declarations/opend";
 import PriceLabel from "./PriceLabel.jsx";
+import { canisterId } from "../../../declarations/nft/index.js";
+import CURRENT_USER_ID from "../index.jsx";
 
 function Item(props) {
   const [name, setName] = useState();
@@ -16,6 +19,7 @@ function Item(props) {
   const [blur, setBlur] = useState();
   const [sellStatus, setSellStatus] = useState();
   const [priceLabel, setPriceLabel] = useState();
+  const [shouldDisplay, setDisplay] = useState(true);
 
   const id = props.id;
 
@@ -101,10 +105,33 @@ function Item(props) {
     }
   }
 
-  async function handleBuy() {}
+  async function handleBuy() {
+    setLoaderHidden(false);
+    const tokenActor = await Actor.createActor(tokenidlFactory, {
+      agent,
+      canisterId: Principal.fromText("rrkah-fqaaa-aaaaa-aaaaq-cai"),
+    });
+    const sellerId = opend.getOriginalOwner(props.id);
+    const itemPrice = opend.getListedNFTPrice(props.id);
+
+    const result = await tokenActor.transfer(sellerId, itemPrice);
+    if (result == "Success") {
+      const result = await opend.completePurchase(
+        props.id,
+        sellerId,
+        CURRENT_USER_ID
+      );
+      console.log(result);
+      setLoaderHidden(true);
+      setDisplay(false);
+    }
+  }
 
   return (
-    <div className="disGrid-item">
+    <div
+      stylee={{ display: shouldDisplay ? "inline" : "none" }}
+      className="disGrid-item"
+    >
       <div className="disPaper-root disCard-root makeStyles-root-17 disPaper-elevation1 disPaper-rounded">
         <img
           className="disCardMedia-root makeStyles-image-19 disCardMedia-media disCardMedia-img"

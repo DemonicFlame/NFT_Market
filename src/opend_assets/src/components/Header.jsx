@@ -5,13 +5,14 @@ import homeImage from "../../assets/home-img.png";
 import Minter from "./Minter";
 import Gallery from "./Gallery";
 import { opend } from "../../../declarations/opend";
+import CURRENT_USER_ID from "../index";
 
 function Header() {
   const [userOwnedGallery, setOwnedGallery] = useState();
   const [listingGallery, setListingGallery] = useState();
 
   async function getNFTs() {
-    const userNFTIds = await opend.getOwnedNFTs(); //ADD AUTHENTICATION HERE
+    const userNFTIds = await opend.getOwnedNFTs(CURRENT_USER_ID);
     setOwnedGallery(
       <Gallery title="My NFTs" ids={userNFTIds} role="collection" />
     );
